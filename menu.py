@@ -1,5 +1,6 @@
 from colorama import Fore
 from helper import *
+import sys
 
 allowed = ['1', '2', '3', 'q']
 
@@ -8,7 +9,7 @@ def menu_options():
     print("1: Python Info\n")
     print("2: System Info\n")
     print("3: CPU Info\n")
-    print("q: quit menu.py\n")
+    print("q: Quit Menu.py\n")
 
 
 def pretty_print(d):
@@ -20,12 +21,12 @@ def pretty_print(d):
 
 def main():
     menu_options()
-    while(True):
+    while True:
         print("------------------------------------------\n")
         try:
             entry = str(
                 input(
-                    "Waehle " +
+                    "Choose " +
                     Fore.RED +
                     str(allowed) +
                     Fore.WHITE +
@@ -38,13 +39,13 @@ def main():
             elif entry == '2':
                 pretty_print(system_info())
             elif entry == '3':
-                pass
+                print(cpu_info())
             else:
-                print("Programm beendet.")
+                print("Program exit.")
                 sys.exit()
 
-        except ValueError:
-            print("Menueoption existiert nicht. Erneut eineben.")
+        except AssertionError:
+            print("Doesnt exist. Type in again.")
 
 if __name__ == "__main__":
     main()
