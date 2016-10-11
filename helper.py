@@ -27,10 +27,10 @@ def system_info():
                             ("Mac Release", platform.mac_ver()[0])])
     elif os == 'Linux':
         return OrderedDict([("LABEL", "CONTENT"),
-                            ("Architecture", platform.architecture()[0])
-                            ("Kernel Redflease", platform.release()),
+                            ("Architecture", platform.architecture()[0]),
+                            ("Kernel Release", platform.release()),
                             ("System", os),
-                            ("Linux Release", platform.linux_distribution[1]),  # deprecated functions
+                            ("Linux Release", platform.linux_distribution()[1]),  # deprecated functions
                             ("Linux Distribution", platform.linux_distribution()[0])])
     elif os == 'Windows':
         pass
@@ -61,7 +61,7 @@ def cpu_info():
 
     os = platform.system()
 
-    if os == 'Linux':
+    if os == 'Darwin':
         model = int(subprocess.check_output(shlex.split("sysctl -n machdep.cpu.model")))
         family = int(subprocess.check_output(shlex.split("sysctl -n machdep.cpu.family")))
         frequency = str(int(subprocess.check_output(shlex.split("sysctl -n hw.cpufrequency"))) * (10**-6)) + " Mhz"
@@ -69,45 +69,52 @@ def cpu_info():
         modelname = modelname[2:len(modelname)-3]  # remove string modifiers
         cm = codename(model, family)
 
-        if cm is "":
-            cm = "Newer microarchitecture"
-
         return OrderedDict([('Modelname', modelname),
                           ('Architecture', platform.architecture()[0]),
                           ('Model', str(model)),
                           ('Family', str(family)),
                           ('Frequency', frequency),
                           ('Codename', cm)])
-    elif os == 'Darwin':
+    elif os == "Linux":
         file = open("/proc/cpuinfo", 'r')
         cpus = int(subprocess.check_output(shlex.split("grep -c ^processor /proc/cpuinfo ")))  # number of cpu
         i = 0
         d = OrderedDict()
+        model = None
+        family = None
 
         for line in file.readlines():
             if i == cpus-1:
-                break;
+                break
 
             d[str(i)] = OrderedDict()
-            d[str(i)]['Processor'] = str(i)
+            d[str(i)]['processor'] = str(i)
+            d[str(i)]['Architecture'] = platform.architecture()[0]
 
-            if 'Modelname' in line:
-                d[str(i)]['Modelname'] = line.split(':')[0].replace(" ", "")
+            if 'model name' in line:
+                model_name = line.split(':')[1].replace(" ", "")
+                d[str(i)]['Modelname'] = model_name
 
-            elif 'Architecture' in line:
-                d[str(i)]['Architecture'] = 'Architecture', line.split(':')[0].replace(" ", "")
+            if 'model\t\t' in line:
+                model = line.split(':')[1].replace(" ", "")
+                d[str(i)]['Model'] = model
+                print(model)
 
-            elif 'Model' in line:
-                d[str(i)]['Model'] = 'Model', line.split(':')[0].replace(" ", "")
+            if 'cpu family' in line:
+                family = line.split(':')[1].replace(" ", "")
+                d[str(i)]['Family'] = family
 
-            elif 'Family' in line:
-                d[str(i)]['Family'] = 'Model', line.split(':')[0].replace(" ", "")
+            if 'cpu MHz' in line:
+                d[str(i)]['Frequency'] = line.split(':')[1].replace(" ", "")
 
-            elif 'Frequency' in line:
-                d[str(i)]['Model'] = 'Model', line.split(':')[0].replace(" ", "")
+            if model != None and family != None:
+                model = int(model)
+                family = int(family)
+                d[str(i)]['Codename'] = codename(model, family)
 
-            elif 'Codename' in line:
-                d[str(i)]['Codename'] = 'Codename', line.split(':')[0].replace(" ", "")
+            if len(line.split(":")) == 1:
+                i = i + 1
+
         return d
 
     elif os == 'Windows':

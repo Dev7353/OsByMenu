@@ -1,4 +1,4 @@
-from colorama import Fore
+# from colorama import Fore
 from helper import *
 import sys
 
@@ -18,6 +18,12 @@ def pretty_print(d):
         output = key + "\t" + d[key]
         print(output.expandtabs(30))
 
+def pretty_print_nested(d):
+    for key in d.keys():
+       for keyindict in d[key]:
+           output = keyindict + "\t" + d[key][keyindict]
+           print(output.expandtabs(30))
+
 
 def main():
     menu_options()
@@ -27,9 +33,9 @@ def main():
             entry = str(
                 input(
                     "Choose " +
-                    Fore.RED +
+                   #  Fore.RED +
                     str(allowed) +
-                    Fore.WHITE +
+                   #  Fore.WHITE +
                     ": "))
 
             assert entry in allowed
@@ -39,7 +45,7 @@ def main():
             elif entry == '2':
                 pretty_print(system_info())
             elif entry == '3':
-                print(cpu_info())
+                pretty_print_nested(cpu_info())
             else:
                 print("Program exit.")
                 sys.exit()
