@@ -76,47 +76,38 @@ def cpu_info():
                           ('Frequency', frequency),
                           ('Codename', cm)])
     elif os == "Linux":
-        file = open("/proc/cpuinfo", 'r')
+        cpuinfo = get_proc_cpuinfo_as_list()
         cpus = int(subprocess.check_output(shlex.split("grep -c ^processor /proc/cpuinfo ")))  # number of cpu
-        i = 0
+        file = open("/proc/cpuinfo", "r")
         d = OrderedDict()
-        model = None
-        family = None
+        while(len(cpuinfo) > 0):
+            for i in range(cpus):
+                d[str(i)] = OrderedDict()
+                for j in range(5):
+                    d[str(i)][cpuinfo[0][0]] = cpuinfo[0][1]
+                    del cpuinfo[0]
 
-        for line in file.readlines():
-            if i == cpus-1:
-                break
 
-            d[str(i)] = OrderedDict()
-            d[str(i)]['processor'] = str(i)
-            d[str(i)]['Architecture'] = platform.architecture()[0]
-
-            if 'model name' in line:
-                model_name = line.split(':')[1].replace(" ", "")
-                d[str(i)]['Modelname'] = model_name
-
-            if 'model\t\t' in line:
-                model = line.split(':')[1].replace(" ", "")
-                d[str(i)]['Model'] = model
-                print(model)
-
-            if 'cpu family' in line:
-                family = line.split(':')[1].replace(" ", "")
-                d[str(i)]['Family'] = family
-
-            if 'cpu MHz' in line:
-                d[str(i)]['Frequency'] = line.split(':')[1].replace(" ", "")
-
-            if model != None and family != None:
-                model = int(model)
-                family = int(family)
-                d[str(i)]['Codename'] = codename(model, family)
-
-            if len(line.split(":")) == 1:
-                i = i + 1
-
+        # add additional attributes which are not in the cpuinfo file
+        for key in d.keys():
+            d[key]["architecture"] = platform.architecture()[0]
+            d[key]["codename"] = codename(model=int(d[key]["model"]), family=int(d[key]["cpu family"]))
         return d
 
     elif os == 'Windows':
         pass
+
+
+def get_proc_cpuinfo_as_list():
+    '''
+    :return: double list with processor number, model/name, cpu family and cpu frequency
+    '''
+    infos = subprocess.check_output(shlex.split("grep 'processor\|model name\|cpu family\|model\|cpu MHz' /proc/cpuinfo ")).decode(encoding="UTF-8")
+    infos = infos.replace("\\", "").replace("\t", "").split("\n")
+
+    for item in range(len(infos)):
+        infos[item]= infos[item].split(":")
+
+    del infos[len(infos)-1]  # remove empty entry
+    return infos
 

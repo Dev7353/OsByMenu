@@ -19,10 +19,10 @@ def pretty_print(d):
         print(output.expandtabs(30))
 
 def pretty_print_nested(d):
-    for key in d.keys():
-       for keyindict in d[key]:
-           output = keyindict + "\t" + d[key][keyindict]
-           print(output.expandtabs(30))
+    for k in d.keys():
+        pretty_print(d[k])
+        print("")
+
 
 
 def main():
